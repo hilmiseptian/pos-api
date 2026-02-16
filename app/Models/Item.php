@@ -18,4 +18,9 @@ class Item extends Model
     'unit',
     'is_active',
   ];
+
+  public function category()
+  {
+    return $this->belongsTo(Category::class);
+  }
 }

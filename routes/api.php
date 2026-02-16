@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\ItemController;
+use App\Http\Controllers\CategoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,4 +28,5 @@ Route::middleware('auth:sanctum')->group(function () {
     // Employees
     Route::apiResource('employees', EmployeeController::class);
     Route::apiResource('items', ItemController::class);
+    Route::apiResource('categories', CategoryController::class);
 });
