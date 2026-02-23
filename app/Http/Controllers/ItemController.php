@@ -22,6 +22,7 @@ class ItemController extends Controller
   public function store(Request $request)
   {
     $data = $request->validate([
+      'category_id' => 'required|exists:categories,id',
       'name' => 'required|string',
       'sku' => 'required|string|unique:items',
       'selling_price' => 'required|numeric',
@@ -37,6 +38,7 @@ class ItemController extends Controller
     ], 201);
   }
 
+
   public function show(int $id)
   {
     return response()->json(
@@ -47,7 +49,9 @@ class ItemController extends Controller
   public function update(Request $request, int $id)
   {
     $data = $request->validate([
+      'category_id' => 'exists:categories,id',
       'name' => 'string',
+      'sku' => 'string',
       'selling_price' => 'numeric',
       'cost_price' => 'numeric',
       'stock' => 'integer',
@@ -60,6 +64,7 @@ class ItemController extends Controller
       'data' => $this->itemService->update($id, $data),
     ]);
   }
+
 
   public function destroy(int $id)
   {

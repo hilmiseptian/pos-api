@@ -9,12 +9,12 @@ class ItemRepository
 {
   public function paginate(int $perPage = 10)
   {
-    return Item::paginate($perPage);
+    return Item::with('category')->paginate($perPage);
   }
 
   public function find(int $id): Item
   {
-    return Item::findOrFail($id);
+    return Item::with('category')->findOrFail($id);
   }
 
   public function create(array $data): Item
