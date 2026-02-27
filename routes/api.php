@@ -8,6 +8,7 @@ use App\Http\Controllers\ItemController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\BranchController;
+use App\Http\Controllers\SubCategoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,6 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('employees', EmployeeController::class);
     Route::apiResource('items', ItemController::class);
     Route::apiResource('categories', CategoryController::class);
+    Route::apiResource('subcategories', SubCategoryController::class);
     Route::apiResource('companies', CompanyController::class);
     Route::apiResource('branches', BranchController::class);
 });
