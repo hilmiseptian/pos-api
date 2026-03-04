@@ -19,6 +19,13 @@ class ItemController extends Controller
     );
   }
 
+  public function all()
+  {
+    return response()->json([
+      'data' => $this->itemService->listAll()
+    ]);
+  }
+
   public function store(Request $request)
   {
     $data = $request->validate([

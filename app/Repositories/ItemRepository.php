@@ -7,6 +7,14 @@ use App\Models\Item;
 
 class ItemRepository
 {
+  public function getAll()
+  {
+    return Item::with('category')
+      ->where('is_active', 1)
+      ->orderBy('name')
+      ->get();
+  }
+
   public function paginate(int $perPage = 10)
   {
     return Item::with('category')->paginate($perPage);

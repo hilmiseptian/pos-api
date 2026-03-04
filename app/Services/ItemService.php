@@ -16,6 +16,11 @@ class ItemService
     return $this->itemRepository->paginate();
   }
 
+  public function listAll()
+  {
+    return $this->itemRepository->getAll();
+  }
+
   public function show(int $id)
   {
     return $this->itemRepository->find($id);
