@@ -8,6 +8,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\SubCategoryController;
+use App\Http\Controllers\UserController;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -70,6 +71,8 @@ Route::middleware('auth:sanctum')->group(function () {
         $request->user()->sendEmailVerificationNotification();
         return response()->json(['message' => 'Verification email sent.']);
     })->middleware('throttle:6,1')->name('verification.send');
+    // Users
+    Route::apiResource('users', UserController::class);
 
     // ── Items ──────────────────────────────────────────────────────────────
     Route::get('/items/all', [ItemController::class, 'all']);

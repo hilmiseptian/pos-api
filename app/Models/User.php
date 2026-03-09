@@ -14,11 +14,13 @@ class User extends Authenticatable implements MustVerifyEmail
 
     protected $fillable = [
         'name',
+        'username',
         'email',
+        'phone',
         'password',
         'company_id',
-        'branch_id',
         'role',
+        'is_active',
     ];
 
     protected $hidden = [
@@ -29,6 +31,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password'          => 'hashed',
+        'is_active'         => 'boolean',
     ];
 
     // ── Relationships ──────────────────────────────────────────────────────────
@@ -38,9 +41,13 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsTo(Company::class);
     }
 
-    public function branch()
+    /**
+     * All branches this user is assigned to (admin / cashier via pivot).
+     */
+    public function branches()
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsToMany(Branch::class, 'branch_user')
+            ->withTimestamps();
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────
@@ -49,9 +56,20 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->role === 'owner';
     }
-
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
     public function isCashier(): bool
     {
         return $this->role === 'cashier';
+    }
+
+    /**
+     * First assigned branch (used for cashier single-branch context).
+     */
+    public function primaryBranch(): ?Branch
+    {
+        return $this->branches()->first();
     }
 }
