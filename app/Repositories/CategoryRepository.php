@@ -3,39 +3,54 @@
 namespace App\Repositories;
 
 use App\Models\Category;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class CategoryRepository
 {
-  public function paginate(int $perPage = 10)
+  public function paginate(int $perPage = 10): LengthAwarePaginator
   {
-    return Category::paginate($perPage);
+    // CompanyScope auto-applies
+    return Category::with('branches')
+      ->orderBy('sort_order')
+      ->orderBy('name')
+      ->paginate($perPage);
   }
 
   public function getAll()
   {
-    return Category::orderBy('sort_order')->get();
+    return Category::with('branches')
+      ->where('is_active', true)
+      ->orderBy('sort_order')
+      ->orderBy('name')
+      ->get();
   }
 
-  public function findById(int $id)
+  public function findById(int $id): Category
   {
-    return Category::findOrFail($id);
+    return Category::with('branches')->findOrFail($id);
   }
 
-  public function create(array $data)
+  public function create(array $data, array $branchIds = []): Category
   {
-    return Category::create($data);
+    $category = Category::create($data);
+
+    if (!empty($branchIds)) {
+      $category->branches()->sync($branchIds);
+    }
+
+    return $category->load('branches');
   }
 
-  public function update(int $id, array $data)
+  public function update(Category $category, array $data, array $branchIds = []): Category
   {
-    $category = $this->findById($id);
     $category->update($data);
-    return $category;
+    $category->branches()->sync($branchIds);
+    return $category->load('branches');
   }
 
-  public function delete(int $id)
+  public function delete(Category $category): bool
   {
-    $category = $this->findById($id);
-    $category->delete();
+    $category->branches()->detach();
+    return $category->delete();
   }
 }
