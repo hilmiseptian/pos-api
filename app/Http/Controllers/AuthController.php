@@ -16,8 +16,6 @@ class AuthController extends Controller
     protected BranchService  $branchService
   ) {}
 
-  // ── Register ───────────────────────────────────────────────────────────────
-
   public function register(Request $request)
   {
     $data = $request->validate([
@@ -30,30 +28,26 @@ class AuthController extends Controller
       'branch_city'  => 'required|string|max:255',
     ]);
 
-    // 1. Create company via service — generates code automatically
     $company = $this->companyService->create([
       'name' => $data['company_name'],
       'type' => $data['company_type'],
     ]);
 
-    // 2. Create owner user
     $user = User::create([
       'name'       => $data['name'],
       'email'      => $data['email'],
       'password'   => Hash::make($data['password']),
       'company_id' => $company->id,
-      'branch_id'  => null,
-      'role'       => 'owner',
+      'role'       => 'owner',  // owner bypasses all permissions
+      'role_id'    => null,
     ]);
 
-    // 3. Create first branch via service — generates code automatically
     $this->branchService->create([
       'company_id' => $company->id,
       'name'       => $data['branch_name'],
       'city'       => $data['branch_city'],
     ]);
 
-    // 4. Fire verification email
     event(new Registered($user));
 
     $token = $user->createToken('auth_token')->plainTextToken;
@@ -65,24 +59,39 @@ class AuthController extends Controller
     ], 201);
   }
 
-  // ── Login ──────────────────────────────────────────────────────────────────
-
   public function login(Request $request)
   {
     $data = $request->validate([
-      'email'    => 'required|email',
+      'login'    => 'required|string',  // accepts email or username
       'password' => 'required|string',
     ]);
 
-    $user = User::where('email', $data['email'])->first();
+    // Detect whether input is email or username
+    $field = filter_var($data['login'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+    $user = User::where($field, $data['login'])
+      ->with('dynamicRole.permissions')
+      ->first();
 
     if (!$user || !Hash::check($data['password'], $user->password)) {
       return response()->json(['message' => 'Invalid credentials.'], 401);
     }
 
-    if ($user->role === 'cashier' && !$user->branch_id) {
+    if (!$user->is_active) {
+      return response()->json(['message' => 'Your account has been deactivated.'], 403);
+    }
+
+    // Non-superadmin/owner users must have at least one branch assigned
+    if (!$user->isSuperAdmin() && !$user->isOwner() && $user->branches()->count() === 0) {
       return response()->json([
         'message' => 'Your account has not been assigned to a branch yet.',
+      ], 403);
+    }
+
+    // Non-superadmin/owner users must have a dynamic role assigned
+    if (!$user->isSuperAdmin() && !$user->isOwner() && !$user->role_id) {
+      return response()->json([
+        'message' => 'Your account has no role assigned. Contact your administrator.',
       ], 403);
     }
 
@@ -95,12 +104,9 @@ class AuthController extends Controller
     ]);
   }
 
-  // ── Logout ─────────────────────────────────────────────────────────────────
-
   public function logout(Request $request)
   {
     $request->user()->currentAccessToken()->delete();
-
     return response()->json(['message' => 'Logged out successfully.']);
   }
 
@@ -108,16 +114,19 @@ class AuthController extends Controller
 
   private function userPayload(User $user): array
   {
+    $user->load('company', 'dynamicRole.permissions');
+
     return [
       'id'             => $user->id,
       'name'           => $user->name,
       'email'          => $user->email,
-      'role'           => $user->role,
+      'role'           => $user->role,           // structural: superadmin/owner/admin/cashier
+      'role_id'        => $user->role_id,
+      'role_name'      => $user->dynamicRole?->name, // display name e.g. "Manager"
       'email_verified' => $user->hasVerifiedEmail(),
       'company_id'     => $user->company_id,
-      'branch_id'      => $user->branch_id,
       'company'        => $user->company?->only(['id', 'name', 'type', 'code']),
-      'branch'         => $user->branch?->only(['id', 'name', 'city', 'code']),
+      'permissions'    => $user->getPermissions(), // ['*'] or ['users.view', ...]
     ];
   }
 }
