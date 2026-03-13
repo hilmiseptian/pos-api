@@ -33,16 +33,20 @@ class UserController extends Controller
 
         $data = $request->validate([
             'name'       => 'required|string|max:255',
-            'username'   => ['required','string','max:50', Rule::unique('users','username')],
-            'email'      => ['required','email', Rule::unique('users','email')],
+            'username'   => ['required', 'string', 'max:50', Rule::unique('users', 'username')],
+            'email'      => ['required', 'email', Rule::unique('users', 'email')],
             'phone'      => 'nullable|string|max:20',
             'password'   => 'required|string|min:8|confirmed',
-            'role'       => 'required|in:admin,cashier',
+            'role_id'    => [
+                'required',
+                'integer',
+                Rule::exists('roles', 'id')->where('company_id', $companyId)->where('is_active', true),
+            ],
             'is_active'  => 'boolean',
             'branch_ids' => 'required|array|min:1',
             'branch_ids.*' => [
                 'integer',
-                Rule::exists('branches','id')->where('company_id', $companyId),
+                Rule::exists('branches', 'id')->where('company_id', $companyId),
             ],
         ]);
 
@@ -61,16 +65,20 @@ class UserController extends Controller
 
         $data = $request->validate([
             'name'       => 'required|string|max:255',
-            'username'   => ['required','string','max:50', Rule::unique('users','username')->ignore($user->id)],
-            'email'      => ['required','email', Rule::unique('users','email')->ignore($user->id)],
+            'username'   => ['required', 'string', 'max:50', Rule::unique('users', 'username')->ignore($user->id)],
+            'email'      => ['required', 'email', Rule::unique('users', 'email')->ignore($user->id)],
             'phone'      => 'nullable|string|max:20',
             'password'   => 'nullable|string|min:8|confirmed',
-            'role'       => 'required|in:admin,cashier',
+            'role_id'    => [
+                'required',
+                'integer',
+                Rule::exists('roles', 'id')->where('company_id', $companyId)->where('is_active', true),
+            ],
             'is_active'  => 'boolean',
             'branch_ids' => 'required|array|min:1',
             'branch_ids.*' => [
                 'integer',
-                Rule::exists('branches','id')->where('company_id', $companyId),
+                Rule::exists('branches', 'id')->where('company_id', $companyId),
             ],
         ]);
 

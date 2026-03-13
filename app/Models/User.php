@@ -19,8 +19,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'phone',
         'password',
         'company_id',
-        'role',       // superadmin | owner | admin | cashier (structural)
-        'role_id',    // FK → roles table (dynamic permissions)
+        'type',     // structural hierarchy: superadmin | owner | staff
+        'role_id',  // FK → roles table (dynamic permissions for staff)
         'is_active',
     ];
 
@@ -52,35 +52,32 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsTo(Role::class, 'role_id');
     }
 
-    // ── Role Checks ────────────────────────────────────────────────────────────
+    // ── Type Checks ────────────────────────────────────────────────────────────
 
     public function isSuperAdmin(): bool
     {
-        return $this->role === 'superadmin';
+        return $this->type === 'superadmin';
     }
 
     public function isOwner(): bool
     {
-        return $this->role === 'owner';
+        return $this->type === 'owner';
     }
 
-    public function isAdmin(): bool
+    public function isStaff(): bool
     {
-        return $this->role === 'admin';
+        return $this->type === 'staff';
     }
 
-    public function isCashier(): bool
-    {
-        return $this->role === 'cashier';
-    }
+    // ── Permission Logic ───────────────────────────────────────────────────────
 
     /**
      * Check if user can perform an action by permission slug.
      *
-     * - superadmin  → always true (bypasses everything)
-     * - owner       → always true within their company
-     * - others      → check role_permissions table
-     * - no role_id  → always false (deny all)
+     * - superadmin → always true (bypasses everything)
+     * - owner      → always true within their company
+     * - staff      → check role_permissions via role_id
+     * - no role_id → always false (deny all)
      */
     public function hasPermission(string $slug): bool
     {

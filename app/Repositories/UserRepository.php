@@ -10,19 +10,18 @@ class UserRepository
 {
   public function paginate(int $perPage = 10): LengthAwarePaginator
   {
-    return User::with('branches')
+    return User::with(['branches', 'dynamicRole'])
       ->where('company_id', auth()->user()->company_id)
-      ->whereIn('role', ['admin', 'cashier'])
-      ->orderByRaw("FIELD(role, 'admin', 'cashier')")
+      ->where('type', 'staff')   // only manage staff; owners/superadmins excluded
       ->orderBy('name')
       ->paginate($perPage);
   }
 
   public function findById(int $id): User
   {
-    return User::with('branches')
+    return User::with(['branches', 'dynamicRole'])
       ->where('company_id', auth()->user()->company_id)
-      ->whereIn('role', ['admin', 'cashier'])
+      ->where('type', 'staff')
       ->findOrFail($id);
   }
 
@@ -35,7 +34,8 @@ class UserRepository
       'phone'      => $data['phone'] ?? null,
       'password'   => Hash::make($data['password']),
       'company_id' => auth()->user()->company_id,
-      'role'       => $data['role'],
+      'type'       => 'staff',
+      'role_id'    => $data['role_id'],
       'is_active'  => $data['is_active'] ?? true,
     ]);
 
@@ -43,7 +43,7 @@ class UserRepository
       $user->branches()->sync($branchIds);
     }
 
-    return $user->load('branches');
+    return $user->load(['branches', 'dynamicRole']);
   }
 
   public function update(User $user, array $data, array $branchIds = []): User
@@ -53,7 +53,7 @@ class UserRepository
       'username'  => $data['username'],
       'email'     => $data['email'],
       'phone'     => $data['phone'] ?? null,
-      'role'      => $data['role'],
+      'role_id'   => $data['role_id'],
       'is_active' => $data['is_active'] ?? $user->is_active,
     ];
 
@@ -62,10 +62,9 @@ class UserRepository
     }
 
     $user->update($updateData);
-
     $user->branches()->sync($branchIds);
 
-    return $user->load('branches');
+    return $user->load(['branches', 'dynamicRole']);
   }
 
   public function delete(User $user): bool

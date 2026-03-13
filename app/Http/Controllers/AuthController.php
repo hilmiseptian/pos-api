@@ -38,7 +38,7 @@ class AuthController extends Controller
       'email'      => $data['email'],
       'password'   => Hash::make($data['password']),
       'company_id' => $company->id,
-      'role'       => 'owner',  // owner bypasses all permissions
+      'type'       => 'owner',  // owner bypasses all permissions
       'role_id'    => null,
     ]);
 
@@ -66,7 +66,6 @@ class AuthController extends Controller
       'password' => 'required|string',
     ]);
 
-    // Detect whether input is email or username
     $field = filter_var($data['login'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
     $user = User::where($field, $data['login'])
@@ -81,15 +80,15 @@ class AuthController extends Controller
       return response()->json(['message' => 'Your account has been deactivated.'], 403);
     }
 
-    // Non-superadmin/owner users must have at least one branch assigned
-    if (!$user->isSuperAdmin() && !$user->isOwner() && $user->branches()->count() === 0) {
+    // Staff must have at least one branch assigned
+    if ($user->isStaff() && $user->branches()->count() === 0) {
       return response()->json([
         'message' => 'Your account has not been assigned to a branch yet.',
       ], 403);
     }
 
-    // Non-superadmin/owner users must have a dynamic role assigned
-    if (!$user->isSuperAdmin() && !$user->isOwner() && !$user->role_id) {
+    // Staff must have a dynamic role assigned
+    if ($user->isStaff() && !$user->role_id) {
       return response()->json([
         'message' => 'Your account has no role assigned. Contact your administrator.',
       ], 403);
@@ -120,13 +119,13 @@ class AuthController extends Controller
       'id'             => $user->id,
       'name'           => $user->name,
       'email'          => $user->email,
-      'role'           => $user->role,           // structural: superadmin/owner/admin/cashier
+      'type'           => $user->type,                    // structural: superadmin/owner/staff
       'role_id'        => $user->role_id,
-      'role_name'      => $user->dynamicRole?->name, // display name e.g. "Manager"
+      'role_name'      => $user->dynamicRole?->name,      // display name e.g. "Manager"
       'email_verified' => $user->hasVerifiedEmail(),
       'company_id'     => $user->company_id,
       'company'        => $user->company?->only(['id', 'name', 'type', 'code']),
-      'permissions'    => $user->getPermissions(), // ['*'] or ['users.view', ...]
+      'permissions'    => $user->getPermissions(),        // ['*'] or ['users.view', ...]
     ];
   }
 }
