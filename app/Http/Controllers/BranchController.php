@@ -22,19 +22,19 @@ class BranchController extends Controller
   public function store(Request $request)
   {
     $data = $request->validate([
-      'company_id' => 'required|exists:companies,id',
-      'name' => 'required|string',
-      'code' => 'required|string|unique:branches,code',
-      'address' => 'nullable|string',
-      'is_active' => 'boolean',
+      'name'       => 'required|string|max:255',
+      'city'       => 'nullable|string|max:255',
+      'address'    => 'nullable|string',
+      'is_active'  => 'boolean',
+      // code is NOT here — generated automatically
     ]);
 
     $branch = $this->service->create($data);
 
     return response()->json([
       'message' => 'Branch created successfully',
-      'data' => $branch
-    ]);
+      'data'    => $branch,
+    ], 201);
   }
 
   public function show($id)
@@ -48,17 +48,18 @@ class BranchController extends Controller
   {
     $data = $request->validate([
       'company_id' => 'required|exists:companies,id',
-      'name' => 'required|string',
-      'code' => 'required|string|unique:branches,code,' . $id,
-      'address' => 'nullable|string',
-      'is_active' => 'boolean',
+      'name'       => 'required|string|max:255',
+      'city'       => 'nullable|string|max:255',
+      'address'    => 'nullable|string',
+      'is_active'  => 'boolean',
+      // code is NOT here — cannot be changed after creation
     ]);
 
     $branch = $this->service->update($id, $data);
 
     return response()->json([
       'message' => 'Branch updated successfully',
-      'data' => $branch
+      'data'    => $branch,
     ]);
   }
 

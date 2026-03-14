@@ -33,9 +33,8 @@ class SubCategoryRepository
     return $category;
   }
 
-  public function delete(int $id)
+  public function delete(SubCategory $subCategory): bool
   {
-    $category = $this->findById($id);
-    $category->delete();
+    return $subCategory->delete();
   }
 }

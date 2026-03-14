@@ -2,36 +2,37 @@
 
 namespace App\Services;
 
+use App\Models\SubCategory;
 use App\Repositories\SubCategoryRepository;
 
 class SubCategoryService
 {
   public function __construct(
-    protected SubCategoryRepository $categoryRepository
+    protected SubCategoryRepository $subCategoryRepository
   ) {}
 
   public function list()
   {
-    return $this->categoryRepository->paginate();
+    return $this->subCategoryRepository->paginate();
   }
 
   public function detail(int $id)
   {
-    return $this->categoryRepository->findById($id);
+    return $this->subCategoryRepository->findById($id);
   }
 
   public function create(array $data)
   {
-    return $this->categoryRepository->create($data);
+    return $this->subCategoryRepository->create($data);
   }
 
   public function update(int $id, array $data)
   {
-    return $this->categoryRepository->update($id, $data);
+    return $this->subCategoryRepository->update($id, $data);
   }
 
-  public function delete(int $id)
+  public function delete(SubCategory $subCategory): bool
   {
-    $this->categoryRepository->delete($id);
+    return $this->subCategoryRepository->delete($subCategory);
   }
 }

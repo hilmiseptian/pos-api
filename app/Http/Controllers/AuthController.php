@@ -113,19 +113,20 @@ class AuthController extends Controller
 
   private function userPayload(User $user): array
   {
-    $user->load('company', 'dynamicRole.permissions');
+    $user->load('company', 'dynamicRole.permissions', 'branches');
 
     return [
       'id'             => $user->id,
       'name'           => $user->name,
       'email'          => $user->email,
-      'type'           => $user->type,                    // structural: superadmin/owner/staff
+      'type'           => $user->type,                       // structural: superadmin/owner/staff
       'role_id'        => $user->role_id,
-      'role_name'      => $user->dynamicRole?->name,      // display name e.g. "Manager"
+      'role_name'      => $user->dynamicRole?->name,         // display name e.g. "Manager"
       'email_verified' => $user->hasVerifiedEmail(),
       'company_id'     => $user->company_id,
       'company'        => $user->company?->only(['id', 'name', 'type', 'code']),
-      'permissions'    => $user->getPermissions(),        // ['*'] or ['users.view', ...]
+      'permissions'    => $user->getPermissions(),           // ['*'] or ['users.view', ...]
+      'branches'       => $user->branches->map(fn($b) => $b->only(['id', 'name', 'city']))->values(),
     ];
   }
 }

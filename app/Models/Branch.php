@@ -4,12 +4,13 @@
 
 namespace App\Models;
 
+use App\Traits\CompanyScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Branch extends Model
 {
-  use HasFactory;
+  use HasFactory, CompanyScope;
 
   protected $fillable = [
     'company_id',

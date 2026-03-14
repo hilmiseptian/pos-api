@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Services\SubCategoryService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class SubCategoryController extends Controller
 {
@@ -22,16 +23,22 @@ class SubCategoryController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'name' => 'required|string|max:255',
+            'category_id' => [
+                'required',
+                Rule::exists('categories', 'id')
+                    ->where('company_id', auth()->user()->company_id), // ✅ must belong to same company
+            ],
+            'name'      => 'required|string|max:255',
             'is_active' => 'boolean',
         ]);
+
+        $data['company_id'] = auth()->user()->company_id; // ✅ auto-set company
 
         $category = $this->categoryService->create($data);
 
         return response()->json([
-            'message' => 'Sub Category created successfully',
-            'data' => $category
+            'message' => 'Sub category created successfully',
+            'data'    => $category,
         ], 201);
     }
 
@@ -60,7 +67,8 @@ class SubCategoryController extends Controller
 
     public function destroy(int $id)
     {
-        $this->categoryService->delete($id);
+        $category = $this->categoryService->detail($id);
+        $this->categoryService->delete($category);
 
         return response()->json([
             'message' => 'Sub Category deleted successfully'
