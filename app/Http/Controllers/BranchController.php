@@ -47,7 +47,6 @@ class BranchController extends Controller
   public function update(Request $request, $id)
   {
     $data = $request->validate([
-      'company_id' => 'required|exists:companies,id',
       'name'       => 'required|string|max:255',
       'city'       => 'nullable|string|max:255',
       'address'    => 'nullable|string',

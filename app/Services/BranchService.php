@@ -31,6 +31,9 @@ class BranchService
   public function update(int $id, array $data)
   {
     // code is intentionally excluded — immutable after creation
+    $data['code'] = $this->generateCode($data['name']);
+    $data['company_id'] = $data['company_id'] ?? auth()->user()->company_id;
+
     return $this->branchRepository->update($id, $data);
   }
 
