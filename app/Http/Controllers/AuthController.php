@@ -115,18 +115,29 @@ class AuthController extends Controller
   {
     $user->load('company', 'dynamicRole.permissions', 'branches');
 
+    if ($user->isOwner() || $user->isSuperAdmin()) {
+      $branches = \App\Models\Branch::where('company_id', $user->company_id)
+        ->get()
+        ->map(fn($b) => $b->only(['id', 'name', 'code']))
+        ->values();
+    } else {
+      $branches = $user->branches
+        ->map(fn($b) => $b->only(['id', 'name', 'code']))
+        ->values();
+    }
+
     return [
       'id'             => $user->id,
       'name'           => $user->name,
       'email'          => $user->email,
-      'type'           => $user->type,                       // structural: superadmin/owner/staff
+      'role'           => $user->role,
       'role_id'        => $user->role_id,
-      'role_name'      => $user->dynamicRole?->name,         // display name e.g. "Manager"
+      'role_name'      => $user->dynamicRole?->name,
       'email_verified' => $user->hasVerifiedEmail(),
       'company_id'     => $user->company_id,
       'company'        => $user->company?->only(['id', 'name', 'type', 'code']),
-      'permissions'    => $user->getPermissions(),           // ['*'] or ['users.view', ...]
-      'branches'       => $user->branches->map(fn($b) => $b->only(['id', 'name', 'city']))->values(),
+      'permissions'    => $user->getPermissions(),
+      'branches'       => $branches,
     ];
   }
 }
