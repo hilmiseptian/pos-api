@@ -2,21 +2,33 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Resources\SubCategoryResource;
 use App\Services\SubCategoryService;
+use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class SubCategoryController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(
         protected SubCategoryService $categoryService
     ) {}
 
     public function index()
     {
-        return response()->json(
-            $this->categoryService->list()
+        return $this->respondWithList(
+            SubCategoryResource::collection(
+                $this->categoryService->list()
+            )
+        );
+    }
+
+    public function show(int $id)
+    {
+        return $this->respondWithItem(
+            new SubCategoryResource($this->categoryService->detail($id))
         );
     }
 
@@ -26,52 +38,44 @@ class SubCategoryController extends Controller
             'category_id' => [
                 'required',
                 Rule::exists('categories', 'id')
-                    ->where('company_id', auth()->user()->company_id), // ✅ must belong to same company
+                    ->where('company_id', auth()->user()->company_id),
             ],
             'name'      => 'required|string|max:255',
             'is_active' => 'boolean',
         ]);
 
-        $data['company_id'] = auth()->user()->company_id; // ✅ auto-set company
+        $data['company_id'] = auth()->user()->company_id;
 
-        $category = $this->categoryService->create($data);
+        $subCategory = $this->categoryService->create($data);
 
-        return response()->json([
-            'message' => 'Sub category created successfully',
-            'data'    => $category,
-        ], 201);
-    }
-
-    public function show(int $id)
-    {
-        return response()->json([
-            'data' => $this->categoryService->detail($id)
-        ]);
+        return $this->respondWithItem(
+            new SubCategoryResource($subCategory),
+            'Sub category created successfully',
+            201
+        );
     }
 
     public function update(Request $request, int $id)
     {
         $data = $request->validate([
             'category_id' => 'required|exists:categories,id',
-            'name' => 'required|string|max:255',
-            'is_active' => 'boolean',
+            'name'        => 'required|string|max:255',
+            'is_active'   => 'boolean',
         ]);
 
-        $category = $this->categoryService->update($id, $data);
+        $subCategory = $this->categoryService->update($id, $data);
 
-        return response()->json([
-            'message' => 'Sub Category updated successfully',
-            'data' => $category
-        ]);
+        return $this->respondWithItem(
+            new SubCategoryResource($subCategory),
+            'Sub category updated successfully'
+        );
     }
 
     public function destroy(int $id)
     {
-        $category = $this->categoryService->detail($id);
-        $this->categoryService->delete($category);
+        $subCategory = $this->categoryService->detail($id);
+        $this->categoryService->delete($subCategory);
 
-        return response()->json([
-            'message' => 'Sub Category deleted successfully'
-        ]);
+        return $this->respondWithMessage('Sub category deleted successfully');
     }
 }

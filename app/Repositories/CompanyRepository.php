@@ -11,7 +11,7 @@ class CompanyRepository
     return Company::paginate($perPage);
   }
 
-  public function find(int $id): Company
+  public function findById(int $id): Company
   {
     return Company::findOrFail($id);
   }

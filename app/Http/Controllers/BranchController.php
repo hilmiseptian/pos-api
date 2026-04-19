@@ -2,72 +2,76 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Resources\BranchResource;
 use App\Services\BranchService;
+use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 
 class BranchController extends Controller
 {
+  use ApiResponse;
+
   public function __construct(
     protected BranchService $service
   ) {}
 
   public function index()
   {
-    return response()->json([
-      'data' => $this->service->list()
-    ]);
+    $branches = $this->service->list();
+
+    return $this->respondWithList(
+      BranchResource::collection($branches)
+    );
   }
 
   public function store(Request $request)
   {
     $data = $request->validate([
-      'name'       => 'required|string|max:255',
-      'city'       => 'nullable|string|max:255',
-      'address'    => 'nullable|string',
-      'is_active'  => 'boolean',
-      // code is NOT here — generated automatically
+      'name'      => 'required|string|max:255',
+      'city'      => 'nullable|string|max:255',
+      'address'   => 'nullable|string',
+      'is_active' => 'boolean',
     ]);
 
     $branch = $this->service->create($data);
 
-    return response()->json([
-      'message' => 'Branch created successfully',
-      'data'    => $branch,
-    ], 201);
+    return $this->respondWithItem(
+      new BranchResource($branch),
+      'Branch created successfully',
+      201
+    );
   }
 
   public function show($id)
   {
-    return response()->json([
-      'data' => $this->service->find($id)
-    ]);
+    $branch = $this->service->find($id);
+
+    return $this->respondWithItem(
+      new BranchResource($branch)
+    );
   }
 
   public function update(Request $request, $id)
   {
     $data = $request->validate([
-      'name'       => 'required|string|max:255',
-      'city'       => 'nullable|string|max:255',
-      'address'    => 'nullable|string',
-      'is_active'  => 'boolean',
-      // code is NOT here — cannot be changed after creation
+      'name'      => 'required|string|max:255',
+      'city'      => 'nullable|string|max:255',
+      'address'   => 'nullable|string',
+      'is_active' => 'boolean',
     ]);
 
     $branch = $this->service->update($id, $data);
 
-    return response()->json([
-      'message' => 'Branch updated successfully',
-      'data'    => $branch,
-    ]);
+    return $this->respondWithItem(
+      new BranchResource($branch),
+      'Branch updated successfully'
+    );
   }
 
   public function destroy($id)
   {
     $this->service->delete($id);
 
-    return response()->json([
-      'message' => 'Branch deleted successfully'
-    ]);
+    return $this->respondWithMessage('Branch deleted successfully');
   }
 }

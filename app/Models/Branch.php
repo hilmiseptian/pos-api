@@ -16,6 +16,7 @@ class Branch extends Model
     'company_id',
     'name',
     'code',
+    'city',
     'address',
     'is_active',
   ];

@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\PermissionResource;
 use App\Models\Permission;
+use App\Traits\ApiResponse;
 
 class PermissionController extends Controller
 {
-    /**
-     * Return all permissions grouped by module.
-     * Used by the role create/edit form to render checkboxes.
-     */
+    use ApiResponse;
+
     public function index()
     {
         $permissions = Permission::orderBy('module')->orderBy('name')->get();
@@ -17,7 +17,7 @@ class PermissionController extends Controller
         $grouped = $permissions->groupBy('module')->map(function ($items, $module) {
             return [
                 'module'      => $module,
-                'permissions' => $items->values(),
+                'permissions' => PermissionResource::collection($items)->resolve(),
             ];
         })->values();
 

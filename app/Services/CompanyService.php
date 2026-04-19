@@ -16,7 +16,7 @@ class CompanyService
     return $this->companyRepository->paginate();
   }
 
-  public function detail(int $id)
+  public function find(int $id)
   {
     return $this->companyRepository->findById($id);
   }

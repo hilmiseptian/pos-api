@@ -2,71 +2,70 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Resources\OrderDetailResource;
+use App\Http\Resources\OrderPaymentResource;
+use App\Http\Resources\OrderResource;
 use App\Services\OrderService;
+use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
+  use ApiResponse;
+
   public function __construct(
     protected OrderService $salesService
   ) {}
 
-  // ── SalesHead ──────────────────────────────────────────────────────────────
-
   public function index()
   {
-    return response()->json(
-      $this->salesService->list()
+    return $this->respondWithList(
+      OrderResource::collection($this->salesService->list())
     );
   }
 
   public function openOrders()
   {
-    return response()->json([
-      'data' => $this->salesService->openOrders()
-    ]);
-  }
-
-  public function store(Request $request)
-  {
-    $data = $request->validate([
-      'notes' => 'nullable|string',
-    ]);
-
-    $sales = $this->salesService->create(
-      cashierId: $request->user()->id,
-      notes: $data['notes'] ?? null,
+    return $this->respondWithList(
+      OrderResource::collection($this->salesService->openOrders())
     );
-
-    return response()->json([
-      'message' => 'Order created successfully',
-      'data'    => $sales,
-    ], 201);
   }
 
   public function show(int $id)
   {
-    return response()->json([
-      'data' => $this->salesService->detail($id)
-    ]);
+    return $this->respondWithItem(
+      new OrderResource($this->salesService->detail($id))
+    );
+  }
+
+  public function store(Request $request)
+  {
+    $data  = $request->validate(['notes' => 'nullable|string']);
+    $order = $this->salesService->create(
+      cashierId: $request->user()->id,
+      notes: $data['notes'] ?? null,
+    );
+
+    return $this->respondWithItem(
+      new OrderResource($order),
+      'Order created successfully',
+      201
+    );
   }
 
   public function cancel(int $id)
   {
-    $sales = $this->salesService->cancel($id);
+    $order = $this->salesService->cancel($id);
 
-    return response()->json([
-      'message' => 'Order cancelled successfully',
-      'data'    => $sales,
-    ]);
+    return $this->respondWithItem(
+      new OrderResource($order),
+      'Order cancelled successfully'
+    );
   }
-
-  // ── SalesDetail ───────────────────────────────────────────────────────────
 
   public function addItem(Request $request, int $id)
   {
-    $data = $request->validate([
+    $data   = $request->validate([
       'item_id'         => 'required|exists:items,id',
       'qty'             => 'required|integer|min:1',
       'discount_amount' => 'nullable|numeric|min:0',
@@ -75,15 +74,16 @@ class OrderController extends Controller
 
     $detail = $this->salesService->addItem($id, $data);
 
-    return response()->json([
-      'message' => 'Item added successfully',
-      'data'    => $detail,
-    ], 201);
+    return $this->respondWithItem(
+      new OrderDetailResource($detail),
+      'Item added successfully',
+      201
+    );
   }
 
   public function updateItem(Request $request, int $id, int $detailId)
   {
-    $data = $request->validate([
+    $data   = $request->validate([
       'qty'             => 'required|integer|min:1',
       'discount_amount' => 'nullable|numeric|min:0',
       'notes'           => 'nullable|string',
@@ -91,35 +91,31 @@ class OrderController extends Controller
 
     $detail = $this->salesService->updateItem($id, $detailId, $data);
 
-    return response()->json([
-      'message' => 'Item updated successfully',
-      'data'    => $detail,
-    ]);
+    return $this->respondWithItem(
+      new OrderDetailResource($detail),
+      'Item updated successfully'
+    );
   }
 
   public function removeItem(int $id, int $detailId)
   {
     $this->salesService->removeItem($id, $detailId);
 
-    return response()->json([
-      'message' => 'Item removed successfully',
-    ]);
+    return $this->respondWithMessage('Item removed successfully');
   }
-
-  // ── SalesPayment ──────────────────────────────────────────────────────────
 
   public function processPayment(Request $request, int $id)
   {
-    $data = $request->validate([
+    $data    = $request->validate([
       'payment_method' => 'required|in:cash,qris',
       'amount_paid'    => 'required|numeric|min:0',
     ]);
 
     $payment = $this->salesService->processPayment($id, $data);
 
-    return response()->json([
-      'message' => 'Payment processed successfully',
-      'data'    => $payment,
-    ]);
+    return $this->respondWithItem(
+      new OrderPaymentResource($payment),
+      'Payment processed successfully'
+    );
   }
 }

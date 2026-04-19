@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Permission;
+use App\Http\Resources\PermissionResource;
+use App\Http\Resources\RoleResource;
 use App\Models\Role;
+use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 
 class RoleController extends Controller
 {
+    use ApiResponse;
+
     public function index()
     {
         $roles = Role::with('permissions')
@@ -15,7 +19,7 @@ class RoleController extends Controller
             ->orderBy('name')
             ->paginate(10);
 
-        return response()->json(['data' => $roles]);
+        return $this->respondWithList(RoleResource::collection($roles));
     }
 
     public function all()
@@ -23,9 +27,9 @@ class RoleController extends Controller
         $roles = Role::where('company_id', auth()->user()->company_id)
             ->where('is_active', true)
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get();
 
-        return response()->json(['data' => $roles]);
+        return $this->respondWithList(RoleResource::collection($roles));
     }
 
     public function show(int $id)
@@ -34,16 +38,16 @@ class RoleController extends Controller
             ->where('company_id', auth()->user()->company_id)
             ->findOrFail($id);
 
-        return response()->json(['data' => $role]);
+        return $this->respondWithItem(new RoleResource($role));
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'           => 'required|string|max:100',
-            'description'    => 'nullable|string|max:255',
-            'is_active'      => 'boolean',
-            'permission_ids' => 'array',
+            'name'             => 'required|string|max:100',
+            'description'      => 'nullable|string|max:255',
+            'is_active'        => 'boolean',
+            'permission_ids'   => 'array',
             'permission_ids.*' => 'integer|exists:permissions,id',
         ]);
 
@@ -58,10 +62,11 @@ class RoleController extends Controller
             $role->permissions()->sync($data['permission_ids']);
         }
 
-        return response()->json([
-            'message' => 'Role created successfully',
-            'data'    => $role->load('permissions'),
-        ], 201);
+        return $this->respondWithItem(
+            new RoleResource($role->load('permissions')),
+            'Role created successfully',
+            201
+        );
     }
 
     public function update(Request $request, int $id)
@@ -70,10 +75,10 @@ class RoleController extends Controller
             ->findOrFail($id);
 
         $data = $request->validate([
-            'name'           => 'required|string|max:100',
-            'description'    => 'nullable|string|max:255',
-            'is_active'      => 'boolean',
-            'permission_ids' => 'array',
+            'name'             => 'required|string|max:100',
+            'description'      => 'nullable|string|max:255',
+            'is_active'        => 'boolean',
+            'permission_ids'   => 'array',
             'permission_ids.*' => 'integer|exists:permissions,id',
         ]);
 
@@ -85,10 +90,10 @@ class RoleController extends Controller
 
         $role->permissions()->sync($data['permission_ids'] ?? []);
 
-        return response()->json([
-            'message' => 'Role updated successfully',
-            'data'    => $role->load('permissions'),
-        ]);
+        return $this->respondWithItem(
+            new RoleResource($role->load('permissions')),
+            'Role updated successfully'
+        );
     }
 
     public function destroy(int $id)
@@ -96,16 +101,15 @@ class RoleController extends Controller
         $role = Role::where('company_id', auth()->user()->company_id)
             ->findOrFail($id);
 
-        // Prevent deletion if users are still assigned
         if ($role->users()->exists()) {
             return response()->json([
-                'message' => 'Cannot delete role with assigned users. Reassign users first.',
+                'message' => 'Cannot delete role with assigned users.',
             ], 422);
         }
 
         $role->permissions()->detach();
         $role->delete();
 
-        return response()->json(['message' => 'Role deleted successfully']);
+        return $this->respondWithMessage('Role deleted successfully');
     }
 }
