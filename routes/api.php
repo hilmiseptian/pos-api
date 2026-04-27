@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\OrderController;
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\URL;
 
 // ── Public ─────────────────────────────────────────────────────────────────────
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login',    [AuthController::class, 'login']);
+Route::post('/login',    [AuthController::class, 'login'])->middleware('throttle:5,1');;
 
 // ── Email Verification ─────────────────────────────────────────────────────────
 Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) {
@@ -54,6 +55,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // ── Permissions (read-only — seeded by system) ─────────────────────────
     Route::get('/permissions', [PermissionController::class, 'index'])
         ->middleware('permission:roles.view');
+
+    Route::get('/dashboard/summary', [DashboardController::class, 'summary'])
+        ->middleware('permission:orders.view'); // or any base permission
 
     // ── Roles (company-managed) ────────────────────────────────────────────
     Route::get('/roles/all', [RoleController::class, 'all']);
