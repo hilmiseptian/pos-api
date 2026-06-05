@@ -13,6 +13,7 @@ class SalesHead extends Model
 
     protected $fillable = [
         'cashier_id',
+        'branch_id',
         'sales_number',
         'status',
         'total_amount',

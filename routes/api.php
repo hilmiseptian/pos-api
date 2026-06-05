@@ -9,7 +9,9 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\SubCategoryController;
 use App\Http\Controllers\UserController;
 use App\Models\User;
@@ -114,6 +116,14 @@ Route::middleware('auth:sanctum')->group(function () {
     // ── Employees ──────────────────────────────────────────────────────────
     Route::apiResource('employees', EmployeeController::class);
 
+    // ── Shifts ─────────────────────────────────────────────────────────────────
+    Route::prefix('shifts')->group(function () {
+        Route::get('/active',     [ShiftController::class, 'active']);
+        Route::get('/today',      [ShiftController::class, 'today']);
+        Route::post('/open',      [ShiftController::class, 'open']);
+        Route::patch('/{id}/close', [ShiftController::class, 'close']);
+    });
+
     // ── Orders / POS ───────────────────────────────────────────────────────
     Route::prefix('orders')->group(function () {
         Route::get('/',              [OrderController::class, 'index'])->middleware('permission:orders.view');
@@ -126,5 +136,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}/items/{detailId}',    [OrderController::class, 'updateItem'])->middleware('permission:orders.edit');
         Route::delete('/{id}/items/{detailId}', [OrderController::class, 'removeItem'])->middleware('permission:orders.edit');
         Route::post('/{id}/payment',            [OrderController::class, 'processPayment'])->middleware('permission:orders.payment');
+    });
+
+    Route::prefix('reports')->group(function () {
+        Route::get('/sales-summary',    [ReportController::class, 'salesSummary']);
+        Route::get('/sales-by-item',    [ReportController::class, 'salesByItem']);
+        Route::get('/payment-breakdown', [ReportController::class, 'paymentBreakdown']);
+        Route::get('/sales-by-branch',  [ReportController::class, 'salesByBranch']);
     });
 });

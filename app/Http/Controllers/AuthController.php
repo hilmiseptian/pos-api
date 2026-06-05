@@ -40,6 +40,7 @@ class AuthController extends Controller
       'company_id' => $company->id,
       'type'       => 'owner',  // owner bypasses all permissions
       'role_id'    => null,
+      'email_verified_at' => now()
     ]);
 
     $this->branchService->create([
