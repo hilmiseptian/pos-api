@@ -49,10 +49,11 @@ class PermissionSeeder extends Seeder
         ['module' => 'branches', 'slug' => 'branches.delete', 'name' => 'Delete Branches'],
 
         // ── Companies ──────────────────────────────────────────────────────
-        ['module' => 'companies', 'slug' => 'companies.view',   'name' => 'View Companies'],
-        ['module' => 'companies', 'slug' => 'companies.create', 'name' => 'Create Companies'],
-        ['module' => 'companies', 'slug' => 'companies.edit',   'name' => 'Edit Companies'],
-        ['module' => 'companies', 'slug' => 'companies.delete', 'name' => 'Delete Companies'],
+        // company permission just for superadmin at DatabaseSeeder
+        // ['module' => 'companies', 'slug' => 'companies.view',   'name' => 'View Companies'],
+        // ['module' => 'companies', 'slug' => 'companies.create', 'name' => 'Create Companies'],
+        // ['module' => 'companies', 'slug' => 'companies.edit',   'name' => 'Edit Companies'],
+        // ['module' => 'companies', 'slug' => 'companies.delete', 'name' => 'Delete Companies'],
 
         // ── Orders / POS ───────────────────────────────────────────────────
         ['module' => 'orders', 'slug' => 'orders.view',    'name' => 'View Orders'],
