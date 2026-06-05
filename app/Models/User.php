@@ -82,8 +82,12 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function hasPermission(string $slug): bool
     {
-        if ($this->isSuperAdmin() || $this->isOwner()) {
+        if ($this->isSuperAdmin()) {
             return true;
+        }
+
+        if ($this->isOwner()) {
+            return !str_starts_with($slug, 'companies.');
         }
 
         if (!$this->role_id) {
@@ -101,8 +105,14 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getPermissions(): array
     {
-        if ($this->isSuperAdmin() || $this->isOwner()) {
-            return ['*']; // wildcard — frontend grants access to everything
+        if ($this->isSuperAdmin()) {
+            return ['*'];
+        }
+
+        if ($this->isOwner()) {
+            return \App\Models\Permission::where('module', '!=', 'companies')
+                ->pluck('slug')
+                ->toArray();
         }
 
         if (!$this->role_id) {
