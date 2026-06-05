@@ -37,6 +37,7 @@ class UserRepository
       'type'       => 'staff',
       'role_id'    => $data['role_id'],
       'is_active'  => $data['is_active'] ?? true,
+      'email_verified_at' => now()
     ]);
 
     if (!empty($branchIds)) {

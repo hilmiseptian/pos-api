@@ -22,6 +22,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'type',     // structural hierarchy: superadmin | owner | staff
         'role_id',  // FK → roles table (dynamic permissions for staff)
         'is_active',
+        'email_verified_at'
     ];
 
     protected $hidden = ['password', 'remember_token'];
