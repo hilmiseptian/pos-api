@@ -12,6 +12,9 @@ class PermissionSeeder extends Seeder
      * Format: module.action
      */
     private array $permissions = [
+        // ── Dashboard ──────────────────────────────────────────────────────────
+        ['module' => 'dashboard', 'slug' => 'dashboard.view',   'name' => 'View Dashboard'],
+
         // ── Users ──────────────────────────────────────────────────────────
         ['module' => 'users', 'slug' => 'users.view',   'name' => 'View Users'],
         ['module' => 'users', 'slug' => 'users.create', 'name' => 'Create Users'],
@@ -61,6 +64,9 @@ class PermissionSeeder extends Seeder
         ['module' => 'orders', 'slug' => 'orders.edit',    'name' => 'Edit Orders'],
         ['module' => 'orders', 'slug' => 'orders.delete',  'name' => 'Delete Orders'],
         ['module' => 'orders', 'slug' => 'orders.payment', 'name' => 'Process Payments'],
+
+        // ── Reports ───────────────────────────────────────────────────
+        ['module' => 'reports', 'slug' => 'reports.view',    'name' => 'View Reports'],
     ];
 
     public function run(): void
