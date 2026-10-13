@@ -10,7 +10,7 @@ class ShiftRepository
   {
     return Shift::where('branch_id', $branchId)
       ->where('status', 'open')
-      ->whereDate('date', today())
+      // ->whereDate('date', today())
       ->latest()
       ->first();
   }

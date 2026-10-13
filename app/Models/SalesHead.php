@@ -13,6 +13,7 @@ class SalesHead extends Model
 
     protected $fillable = [
         'cashier_id',
+        'company_id',
         'branch_id',
         'sales_number',
         'status',
@@ -29,6 +30,16 @@ class SalesHead extends Model
     ];
 
     // ── Relationships ──────────────────────────────────────────────────────────
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
 
     public function cashier()
     {

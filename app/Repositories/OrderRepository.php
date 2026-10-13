@@ -11,9 +11,15 @@ class OrderRepository
 {
   // ── SalesHead ──────────────────────────────────────────────────────────────
 
-  public function paginate(int $perPage = 10)
+  public function paginate(int $perPage = 10, $filters = null)
   {
     return SalesHead::with(['cashier', 'details', 'payment'])
+      ->whereHas('cashier', function ($q) {
+        $q->where('company_id', auth()->user()->company_id);
+      })->when(
+        isset($filters['branch_id']),
+        fn($q) => $q->where('branch_id', $filters['branch_id'])
+      )
       ->latest()
       ->paginate($perPage);
   }

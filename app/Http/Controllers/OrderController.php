@@ -14,34 +14,34 @@ class OrderController extends Controller
   use ApiResponse;
 
   public function __construct(
-    protected OrderService $salesService
+    protected OrderService $orderService
   ) {}
 
   public function index()
   {
     return $this->respondWithList(
-      OrderResource::collection($this->salesService->list())
+      OrderResource::collection($this->orderService->list())
     );
   }
 
   public function openOrders()
   {
     return $this->respondWithList(
-      OrderResource::collection($this->salesService->openOrders())
+      OrderResource::collection($this->orderService->openOrders())
     );
   }
 
   public function show(int $id)
   {
     return $this->respondWithItem(
-      new OrderResource($this->salesService->detail($id))
+      new OrderResource($this->orderService->detail($id))
     );
   }
 
   public function store(Request $request)
   {
     $data  = $request->validate(['notes' => 'nullable|string']);
-    $order = $this->salesService->create(
+    $order = $this->orderService->create(
       cashierId: $request->user()->id,
       notes: $data['notes'] ?? null,
     );
@@ -55,7 +55,7 @@ class OrderController extends Controller
 
   public function cancel(int $id)
   {
-    $order = $this->salesService->cancel($id);
+    $order = $this->orderService->cancel($id);
 
     return $this->respondWithItem(
       new OrderResource($order),
@@ -72,7 +72,7 @@ class OrderController extends Controller
       'notes'           => 'nullable|string',
     ]);
 
-    $detail = $this->salesService->addItem($id, $data);
+    $detail = $this->orderService->addItem($id, $data);
 
     return $this->respondWithItem(
       new OrderDetailResource($detail),
@@ -89,7 +89,7 @@ class OrderController extends Controller
       'notes'           => 'nullable|string',
     ]);
 
-    $detail = $this->salesService->updateItem($id, $detailId, $data);
+    $detail = $this->orderService->updateItem($id, $detailId, $data);
 
     return $this->respondWithItem(
       new OrderDetailResource($detail),
@@ -99,7 +99,7 @@ class OrderController extends Controller
 
   public function removeItem(int $id, int $detailId)
   {
-    $this->salesService->removeItem($id, $detailId);
+    $this->orderService->removeItem($id, $detailId);
 
     return $this->respondWithMessage('Item removed successfully');
   }
@@ -111,7 +111,7 @@ class OrderController extends Controller
       'amount_paid'    => 'required|numeric|min:0',
     ]);
 
-    $payment = $this->salesService->processPayment($id, $data);
+    $payment = $this->orderService->processPayment($id, $data);
 
     return $this->respondWithItem(
       new OrderPaymentResource($payment),
