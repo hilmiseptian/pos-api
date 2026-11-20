@@ -46,8 +46,20 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Auth
     Route::delete('/logout', [AuthController::class, 'logout']);
-    Route::get('/user', fn(Request $r) => $r->user()->load('company', 'dynamicRole.permissions'));
+    Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+        // Memuat semua relasi dari kedua kode
+        $user = $request->user()->load('company', 'dynamicRole.permissions');
 
+        return response()->json([
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'company_id' => $user->company_id,
+            'company_name' => $user->company?->name,
+            'company' => $user->company, // Opsional: Jika objek company lengkap dibutuhkan
+            'dynamic_role' => $user->dynamicRole, // Menyertakan role dan permissions-nya
+        ]);
+    });
     // Email verification resend
     Route::post('/email/verification-notification', function (Request $request) {
         $request->user()->sendEmailVerificationNotification();
