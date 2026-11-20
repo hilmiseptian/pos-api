@@ -18,7 +18,6 @@ class Item extends Model
     'description',
     'cost_price',
     'selling_price',
-    'stock',
     'min_stock',
     'unit',
     'is_active',

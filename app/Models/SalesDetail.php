@@ -22,6 +22,7 @@ class SalesDetail extends Model
     ];
 
     protected $casts = [
+        'qty'             => 'integer',
         'unit_price'      => 'decimal:2',
         'discount_amount' => 'decimal:2',
         'subtotal'        => 'decimal:2',

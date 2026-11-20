@@ -41,8 +41,16 @@ class OrderController extends Controller
   public function store(Request $request)
   {
     $data  = $request->validate(['notes' => 'nullable|string']);
+    $user = $request->user();
+    $branch = $user->primaryBranch();
+    if (!$branch || (int) $branch->company_id !== (int) $user->company_id) {
+      return $this->respondWithMessage('Assign this user to a branch before creating a POS order.', 422);
+    }
+
     $order = $this->orderService->create(
-      cashierId: $request->user()->id,
+      cashierId: $user->id,
+      companyId: $user->company_id,
+      branchId: $branch->id,
       notes: $data['notes'] ?? null,
     );
 

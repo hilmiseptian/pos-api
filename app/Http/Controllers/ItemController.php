@@ -50,7 +50,6 @@ class ItemController extends Controller
       'sku'           => 'required|string|unique:items',
       'selling_price' => 'required|numeric',
       'cost_price'    => 'nullable|numeric',
-      'stock'         => 'integer',
       'unit'          => 'string',
       'is_active'     => 'boolean',
     ]);
@@ -73,7 +72,6 @@ class ItemController extends Controller
       'sku'           => 'string',
       'selling_price' => 'numeric',
       'cost_price'    => 'numeric',
-      'stock'         => 'integer',
       'unit'          => 'string',
       'is_active'     => 'boolean',
     ]);

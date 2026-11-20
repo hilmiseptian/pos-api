@@ -16,7 +16,7 @@ class ItemResource extends JsonResource
             'description'   => $this->description,
             'cost_price'    => $this->cost_price,
             'selling_price' => $this->selling_price,
-            'stock'         => $this->stock,
+            'stock'         => $this->when(isset($this->branch_stock), fn () => (int) $this->branch_stock),
             'min_stock'     => $this->min_stock,
             'unit'          => $this->unit,
             'is_active'     => $this->is_active,

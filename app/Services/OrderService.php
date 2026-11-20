@@ -28,10 +28,12 @@ class OrderService
     return $this->salesRepository->findById($id);
   }
 
-  public function create(int $cashierId, ?string $notes = null)
+  public function create(int $cashierId, int $companyId, int $branchId, ?string $notes = null)
   {
     return $this->salesRepository->create([
       'cashier_id' => $cashierId,
+      'company_id' => $companyId,
+      'branch_id'  => $branchId,
       'notes'      => $notes,
     ]);
   }
@@ -51,7 +53,7 @@ class OrderService
     $discount  = $data['discount_amount'] ?? 0;
     $subtotal  = ($unitPrice * $data['qty']) - $discount;
 
-    $detail = $this->salesRepository->addDetail($salesHeadId, [
+    return $this->salesRepository->addDetail($salesHeadId, [
       'item_id'         => $data['item_id'],
       'qty'             => $data['qty'],
       'unit_price'      => $unitPrice,
@@ -59,10 +61,6 @@ class OrderService
       'subtotal'        => max(0, $subtotal),
       'notes'           => $data['notes'] ?? null,
     ]);
-
-    $this->salesRepository->recalculateTotals($salesHeadId);
-
-    return $detail;
   }
 
   public function updateItem(int $salesHeadId, int $detailId, array $data)
@@ -72,37 +70,26 @@ class OrderService
     $discount  = $data['discount_amount'] ?? $detail->discount_amount;
     $subtotal  = ($unitPrice * $data['qty']) - $discount;
 
-    $updated = $this->salesRepository->updateDetail($detailId, [
+    return $this->salesRepository->updateDetail($salesHeadId, $detailId, [
       'qty'             => $data['qty'],
       'discount_amount' => $discount,
       'subtotal'        => max(0, $subtotal),
       'notes'           => $data['notes'] ?? $detail->notes,
     ]);
-
-    $this->salesRepository->recalculateTotals($salesHeadId);
-
-    return $updated;
   }
 
   public function removeItem(int $salesHeadId, int $detailId)
   {
-    $this->salesRepository->removeDetail($detailId);
-    $this->salesRepository->recalculateTotals($salesHeadId);
+    $this->salesRepository->removeDetail($salesHeadId, $detailId);
   }
 
   // ── SalesPayment ──────────────────────────────────────────────────────────
 
   public function processPayment(int $salesHeadId, array $data)
   {
-    $sales        = $this->salesRepository->findById($salesHeadId);
-    $changeAmount = $data['payment_method'] === 'cash'
-      ? max(0, $data['amount_paid'] - $sales->grand_total)
-      : 0;
-
     return $this->salesRepository->createPayment($salesHeadId, [
       'payment_method' => $data['payment_method'],
       'amount_paid'    => $data['amount_paid'],
-      'change_amount'  => $changeAmount,
     ]);
   }
 }
